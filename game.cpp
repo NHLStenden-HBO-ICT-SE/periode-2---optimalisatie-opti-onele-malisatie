@@ -12,9 +12,9 @@ constexpr auto tank_max_speed = 1.0;
 constexpr auto health_bar_width = 70;
 
 constexpr auto max_frames = 2000;
-
+//Jesse time: 70648.7
 //Global performance timer
-constexpr auto REF_PERFORMANCE = 114757; //UPDATE THIS WITH YOUR REFERENCE PERFORMANCE (see console after 2k frames)
+constexpr auto REF_PERFORMANCE = 70648.7; //UPDATE THIS WITH YOUR REFERENCE PERFORMANCE (see console after 2k frames)
 static timer perf_timer;
 static float duration;
 
@@ -317,7 +317,7 @@ void Game::update(float deltaTime)
 void Game::draw()
 {
     // clear the graphics window
-    screen->clear(0);
+    //screen->clear(0);
 
     //Draw background
     background_terrain.draw(screen);

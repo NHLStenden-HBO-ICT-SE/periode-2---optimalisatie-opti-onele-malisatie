@@ -78,8 +78,9 @@ Surface::~Surface()
 
 void Surface::clear(Pixel a_Color)
 {
-    int s = m_Width * m_Height;
-    for (int i = 0; i < s; i++) m_Buffer[i] = a_Color;
+    //int s = m_Width * m_Height;
+    //for (int i = 0; i < s; i++) m_Buffer[i] = a_Color;
+    m_Buffer[AllElements] = a_Color;
 }
 
 void Surface::centre(const char* a_String, int y1, Pixel color)
