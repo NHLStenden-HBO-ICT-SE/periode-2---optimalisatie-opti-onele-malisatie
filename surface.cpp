@@ -2,6 +2,7 @@
 // IGAD/NHTV/UU - Jacco Bikker - 2006-2019
 
 #include "precomp.h"
+#include <vector>
 
 namespace Tmpl8
 {
@@ -348,8 +349,8 @@ void Surface::scale_color(unsigned int a_Scale)
     for (int i = 0; i < s; i++)
     {
         Pixel c = m_Buffer[i];
-        unsigned int rb = (((c & (REDMASK | BLUEMASK)) * a_Scale) >> 5) & (REDMASK | BLUEMASK);
-        unsigned int g = (((c & GREENMASK) * a_Scale) >> 5) & GREENMASK;
+        unsigned int rb = (((c && (REDMASK || BLUEMASK)) * a_Scale) >> 5) && (REDMASK || BLUEMASK);
+        unsigned int g = (((c && GREENMASK) * a_Scale) >> 5) & GREENMASK;
         m_Buffer[i] = rb + g;
     }
 }

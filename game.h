@@ -17,9 +17,10 @@ class Game
     void update(float deltaTime);
     void draw();
     void tick(float deltaTime);
-    void insertion_sort_tanks_health(const std::vector<Tank>& original, std::vector<const Tank*>& sorted_tanks, int begin, int end);
-    void draw_health_bars(const std::vector<const Tank*>& sorted_tanks, const int team);
+    void insertion_sort_tanks_health(const vector<Tank>& original, vector<const Tank*>& sorted_tanks, int begin, int end);
+    void draw_health_bars(const vector<const Tank*>& sorted_tanks, const int team);
     void measure_performance();
+    //vector<Tank> sort(vector<Tank> sortlist);
 
     Tank& find_closest_enemy(Tank& current_tank);
 
@@ -45,15 +46,17 @@ class Game
 
   private:
     Surface* screen;
-
+    
     vector<Tank> tanks;
+
+    vector<Tank*> active_tanks;
     vector<Rocket> rockets;
     vector<Smoke> smokes;
     vector<Explosion> explosions;
     vector<Particle_beam> particle_beams;
 
     Terrain background_terrain;
-    std::vector<vec2> forcefield_hull;
+    vector<vec2> forcefield_hull;
 
     Font* frame_count_font;
     long long frame_count = 0;

@@ -62,7 +62,7 @@ class ThreadPool
   private:
     friend class Worker; //Gives access to the private variables of this class
 
-    std::vector<std::thread> workers;
+    vector<std::thread> workers;
     std::deque<std::function<void()>> tasks;
 
     std::condition_variable condition; //Wakes up a thread when work is available
