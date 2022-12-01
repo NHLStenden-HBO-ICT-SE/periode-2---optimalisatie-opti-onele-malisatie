@@ -20,6 +20,11 @@ class Game
     void insertion_sort_tanks_health(const vector<Tank>& original, vector<const Tank*>& sorted_tanks, int begin, int end);
     void draw_health_bars(const vector<const Tank*>& sorted_tanks, const int team);
     void measure_performance();
+    vector<Tank*> LeftTankSort(vector<Tank*> tanks);
+    vector<Tank*> LeftTankMerge(vector<Tank*> l_tanks, vector<Tank*> r_tanks);
+    int Rotation(vec2 LastHull, vec2 pos2, vec2 pos3);
+    void ConvexHull(vector<Tank*> LeftMergedTanks);
+
     //vector<Tank> sort(vector<Tank> sortlist);
 
     Tank& find_closest_enemy(Tank& current_tank);

@@ -20,7 +20,7 @@ constexpr auto max_frames = 2000;
 //Global performance timer
 //jasper time: 84736.2
 //Quickest jasper time: 77339.3
-constexpr auto REF_PERFORMANCE = 84736.2; //UPDATE THIS WITH YOUR REFERENCE PERFORMANCE (see console after 2k frames)
+constexpr auto REF_PERFORMANCE = 85699.5; //UPDATE THIS WITH YOUR REFERENCE PERFORMANCE (see console after 2k frames)
 static timer perf_timer;
 static float duration;
 
@@ -193,37 +193,24 @@ void Game::update(float deltaTime)
     //Calculate "forcefield" around active tanks
     forcefield_hull.clear();
 
-    //Find first active tank (this loop is a bit disgusting, fix?)
-    /*
-    int first_active = 0;
-    for (Tank& tank : tanks)
-    {
-        if (tank.active)
-        {
-            break;
-        }
-        first_active++;
-    }
-    */
-
-    //vec2 point_on_hull = tanks.at(first_active).position;
-    vec2 point_on_hull = active_tanks.at(0)->position;
+    
     //Find left most tank position
-    for (Tank* tank : active_tanks)
-    {
-            if (tank->position.x <= point_on_hull.x)
-            {
-                point_on_hull = tank->position;
-            }
-    }
+    vector<Tank*> LeftMergedTanks = LeftTankSort(active_tanks);
+    vec2 point_on_hull = LeftMergedTanks.at(0)->position;
+ 
 
     //Calculate convex hull for 'rocket barrier'
-    for (Tank* tank : active_tanks)
+
+    forcefield_hull.push_back(point_on_hull);
+    ConvexHull(LeftMergedTanks);
+
+    /*
+    for (Tank* tank : LeftMergedTanks)
     {
             forcefield_hull.push_back(point_on_hull);
-            vec2 endpoint = active_tanks.at(0)->position;
+            vec2 endpoint = LeftMergedTanks.at(LeftMergedTanks.size() - 1)->position;
 
-            for (Tank* tank : active_tanks)
+            for (Tank* tank : LeftMergedTanks)
             {
                 if ((endpoint == point_on_hull) || left_of_line(point_on_hull, endpoint, tank->position))
                 {
@@ -237,7 +224,7 @@ void Game::update(float deltaTime)
                 break;
             }
     }
-
+    */
     //Update rockets
     for (Rocket& rocket : rockets)
     {
@@ -503,20 +490,118 @@ void Game::tick(float deltaTime)
     frame_count_font->print(screen, frame_count_string.c_str(), 350, 580);
 }
 
-/*vector<Tank> Game::sort(vector<Tank> sortlist)
+vector<Tank*> Game::LeftTankSort(vector<Tank*> tanks) 
 {
-	vector<Tank> Active;
-	vector<Tank> Inactive;
-	for (int i = 0; i < sortlist.size(), i++;) {
-		if (sortlist.at(i).active) {
-			Active.push_back(sortlist.at(i));
-		}
-		else
-		{
-			Inactive.push_back(sortlist.at(i));
-		}
-	}
-	Active.insert(Active.end(), Inactive.begin(), Inactive.end());
-    return Active;
+    if (tanks.size() == 1) { return tanks; }
+
+    size_t const indexmiddle = (tanks.size() / 2);
+    //MERGE SORT HIER
+
+	vector<Tank*> split_l(tanks.begin(), (tanks.begin() + indexmiddle));
+	vector<Tank*> split_r((tanks.begin() + indexmiddle), tanks.end());
+
+    split_l = LeftTankSort(split_l);
+    split_r = LeftTankSort(split_r);
+
+    return LeftTankMerge(split_l, split_r);
 }
-*/
+
+vector<Tank*> Game::LeftTankMerge(vector<Tank*> l_tanks, vector<Tank*> r_tanks)
+{
+    vector<Tank*> Mergedtanks;
+    while (l_tanks.size() > 0 && r_tanks.size() > 0) {
+        if (l_tanks.at(0)->position.x > r_tanks.at(0)->position.x) {
+            Mergedtanks.push_back(r_tanks.at(0));
+            r_tanks.erase(r_tanks.begin());
+        }
+        else{
+			Mergedtanks.push_back(l_tanks.at(0));
+			l_tanks.erase(l_tanks.begin());
+        }
+    }
+    while(l_tanks.size() > 0){
+		Mergedtanks.push_back(l_tanks.at(0));
+		l_tanks.erase(l_tanks.begin());
+    }
+    while (r_tanks.size() > 0) {
+        Mergedtanks.push_back(r_tanks.at(0));
+        r_tanks.erase(r_tanks.begin());
+    }
+
+    return Mergedtanks;
+}
+
+int Game::Rotation(vec2 LastHull, vec2 pos2, vec2 pos3) 
+{
+    int m1 = (pos2.y - LastHull.y) / (pos2.x - LastHull.x);
+    int m2 = (pos3.y - pos2.y) / (pos3.x - pos2.x);
+
+    //counterclockwise
+    if (m1 < m2) 
+    {return 1;}
+    //Clockwise
+    else if (m1 > m2)
+    {return -1;}
+    //Straight
+    else
+    {return 0;}
+}
+
+void Game::ConvexHull(vector<Tank*> LeftMergedTanks)
+{
+    int rotation;
+    //lower half
+    for (int i = 0; i < LeftMergedTanks.size() - 1; i++)
+    {
+        rotation = Rotation(forcefield_hull.at(forcefield_hull.size() - 1), LeftMergedTanks.at(i)->position, LeftMergedTanks.at(i + 1)->position);
+        switch (rotation) {
+        case 1:
+            forcefield_hull.push_back(LeftMergedTanks.at(i)->position);
+            break;
+        case -1:
+            forcefield_hull.push_back(LeftMergedTanks.at(i + 1)->position);
+            for (int j = forcefield_hull.size() - 1; j >= 0; j--)
+            {
+                rotation = Rotation(forcefield_hull.at(forcefield_hull.size() - 3), forcefield_hull.at(forcefield_hull.size() - 2), LeftMergedTanks.at(i + 1)->position);
+                if (rotation == -1)
+                {
+                    forcefield_hull.erase(forcefield_hull.end() - 1);
+                }
+                else { 
+                    forcefield_hull.erase(forcefield_hull.end() - 1);
+                    break; }
+            }
+            break;
+        case 0:
+            forcefield_hull.push_back(LeftMergedTanks.at(i)->position);
+            break;
+        }
+    }
+    //upper half
+    for (int i = LeftMergedTanks.size() - 1; i > 0; i--)
+    {
+        rotation = Rotation(forcefield_hull.at(forcefield_hull.size() - 1), LeftMergedTanks.at(i)->position, LeftMergedTanks.at(i - 1)->position);
+        switch (rotation) {
+        case 1:
+            forcefield_hull.push_back(LeftMergedTanks.at(i)->position);
+            break;
+        case -1:
+            forcefield_hull.push_back(LeftMergedTanks.at(i - 1)->position);
+            for (int j = forcefield_hull.size() - 1; j >= 0; j--)
+            {
+                rotation = Rotation(forcefield_hull.at(forcefield_hull.size() - 3), forcefield_hull.at(forcefield_hull.size() - 2), LeftMergedTanks.at(i - 1)->position);
+                if (rotation == -1)
+                {
+                    forcefield_hull.erase(forcefield_hull.end() - 1);
+                }
+                else { 
+                    forcefield_hull.erase(forcefield_hull.end() - 1);
+                    break; }
+            }
+            break;
+        case 0:
+            forcefield_hull.push_back(LeftMergedTanks.at(i)->position);
+            break;
+        }
+    }
+}
