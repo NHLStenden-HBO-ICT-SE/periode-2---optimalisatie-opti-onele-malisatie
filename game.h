@@ -67,6 +67,8 @@ class Game
     Terrain background_terrain;
     vector<vec2> forcefield_hull;
 
+    vec2 LowestPoint;
+
     Font* frame_count_font;
     long long frame_count = 0;
 

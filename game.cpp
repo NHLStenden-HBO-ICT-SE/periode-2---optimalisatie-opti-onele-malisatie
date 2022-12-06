@@ -197,11 +197,11 @@ void Game::update(float deltaTime)
     //Find bottom most tank position
     vector<Tank*> BottomMergedTanks = BottomTankSort(active_tanks);
     vec2 point_on_hull = BottomMergedTanks.at(0)->position;
+    vec2 LowestPoint = BottomMergedTanks.at(0)->position;
+    
  
 
     //Calculate convex hull for 'rocket barrier'
-
-    forcefield_hull.push_back(point_on_hull);
     ConvexHull(BottomMergedTanks);
 
     /*
@@ -514,6 +514,19 @@ vector<Tank*> Game::BottomTankMerge(vector<Tank*> l_tanks, vector<Tank*> r_tanks
             Mergedtanks.push_back(r_tanks.at(0));
             r_tanks.erase(r_tanks.begin());
         }
+        else if(l_tanks.at(0)->position.y == r_tanks.at(0)->position.y)
+        {
+            if (l_tanks.at(0)->position.x > r_tanks.at(0)->position.x)
+            {
+                Mergedtanks.push_back(r_tanks.at(0));
+                r_tanks.erase(r_tanks.begin());
+            }
+            else
+            {
+                Mergedtanks.push_back(l_tanks.at(0));
+                l_tanks.erase(l_tanks.begin());
+            }
+        }
         else{
 			Mergedtanks.push_back(l_tanks.at(0));
 			l_tanks.erase(l_tanks.begin());
@@ -556,8 +569,8 @@ vector<Tank*> Game::AngleTankMerge(vector<Tank*> l_tanks, vector<Tank*> r_tanks)
     while (l_size > 0 && r_size > 0) {
 
         if (AngleCalculator(l_tanks.at(0)->position) == AngleCalculator(r_tanks.at(0)->position)) {
-            double a = distSqr(forcefield_hull.at(0), l_tanks.at(0)->position);
-            double b = distSqr(forcefield_hull.at(0), r_tanks.at(0)->position);
+            double a = distSqr(LowestPoint, l_tanks.at(0)->position);
+            double b = distSqr(LowestPoint, r_tanks.at(0)->position);
             if (a > b) {
                 r_tanks.erase(r_tanks.begin());
                 r_size--;
@@ -567,7 +580,7 @@ vector<Tank*> Game::AngleTankMerge(vector<Tank*> l_tanks, vector<Tank*> r_tanks)
                 l_size--;
             }
         }
-        else if (AngleCalculator(l_tanks.at(0)->position) < AngleCalculator(r_tanks.at(0)->position)) {
+        else if (AngleCalculator(l_tanks.at(0)->position) > AngleCalculator(r_tanks.at(0)->position)) {
             Mergedtanks.push_back(r_tanks.at(0));
             r_tanks.erase(r_tanks.begin());
             r_size--;
@@ -594,27 +607,20 @@ vector<Tank*> Game::AngleTankMerge(vector<Tank*> l_tanks, vector<Tank*> r_tanks)
 
 double Game::AngleCalculator(vec2 position){
     /*
-    double dot = (forcefield_hull.at(0).x * position.x) + (forcefield_hull.at(0).y * position.y);
-    double det = (forcefield_hull.at(0).x * position.x) - (forcefield_hull.at(0).y * position.y);
+    double dot = (LowestPoint.x * position.x) + (LowestPoint.y * position.y);
+    double det = (LowestPoint.x * position.x) - (LowestPoint.y * position.y);
     return atan2(det, dot);
     */
-   return atan2((position.y - forcefield_hull.at(0).y), (position.x - forcefield_hull.at(0).x)) * (180/PI);
+   return (atan2((LowestPoint.y - position.y), (position.x - LowestPoint.x)) * (180/PI));
 }
 
-int Game::Rotation(vec2 LastHull, vec2 pos2, vec2 pos3) 
+int Game::Rotation(vec2 pos1, vec2 pos2, vec2 pos3) 
 {
-    int m1 = (pos2.y - LastHull.y) / (pos2.x - LastHull.x);
-    int m2 = (pos3.y - pos2.y) / (pos3.x - pos2.x);
-
-    //counterclockwise
-    if (m1 < m2) 
-    {return 1;}
-    //Clockwise
-    else if (m1 > m2)
-    {return -1;}
-    //Straight
-    else
-    {return 0;}
+    double IsLeftTurn = ((pos2.x - pos1.x) * (pos3.y - pos1.y)) - ((pos2.y - pos1.y) * (pos3.x - pos1.x));
+    // If 1 = Left, if -1 = Right, if 0 = Colinair
+    //??
+    if (IsLeftTurn == 0) return 0;
+    return (IsLeftTurn > 0) ? 1 : -1;
 }
 
 double Game::distSqr(vec2 pos1, vec2 pos2)
@@ -623,33 +629,61 @@ double Game::distSqr(vec2 pos1, vec2 pos2)
 }
 
 
-void Game::ConvexHull(vector<Tank*> LeftMergedTanks)
+void Game::ConvexHull(vector<Tank*> BottomMergedTanks)
 {
-    int rotation;
-    vector<Tank*> AngledSortedTanks = AngleTankSort(LeftMergedTanks);
-    forcefield_hull.push_back(AngledSortedTanks.at(1)->position);
 
-    //lower half
-    for (int i = 2; i < AngledSortedTanks.size(); i++)
+    if (frame_count == 58)
     {
-        vec2 next = AngledSortedTanks.at(i)->position;
-        vec2 p = forcefield_hull.back();
-        forcefield_hull.pop_back();
+        int hello = 1;
+    }
+    LowestPoint = BottomMergedTanks.at(0)->position;
+    Tank* LowestTank = BottomMergedTanks.at(0);
+    BottomMergedTanks.erase(BottomMergedTanks.begin());
+    vector<Tank*> AngledSortedTanks = AngleTankSort(BottomMergedTanks);
+    AngledSortedTanks.push_back(LowestTank);
+    //AngledSortedTanks.insert(AngledSortedTanks.begin(), LowestTank);
 
-        while (forcefield_hull.size() != 1 && Rotation(forcefield_hull.back(), p, AngledSortedTanks.at(i)->position) <= 0)
+    forcefield_hull.push_back(AngledSortedTanks.at(AngledSortedTanks.size() - 2)->position);
+    forcefield_hull.push_back(LowestPoint);
+
+    for (int i = 0; i < AngledSortedTanks.size(); i++)
+    {
+        while (Rotation(forcefield_hull.at(forcefield_hull.size() - 2), forcefield_hull.at(forcefield_hull.size() - 1), AngledSortedTanks.at(i)->position) > 0)
         {
-            p = forcefield_hull.back();
             forcefield_hull.pop_back();
-        }   
-        forcefield_hull.push_back(p);
+        }
+
         forcefield_hull.push_back(AngledSortedTanks.at(i)->position);
     }
 
-    vec2 p = forcefield_hull.back();
     forcefield_hull.pop_back();
-    if (Rotation(forcefield_hull.back(), p, forcefield_hull.at(0)) > 0)
+
+
+    /*
+    int m = 1;
+    for (int i = 1; i < AngledSortedTanks.size(); i++)
     {
-        forcefield_hull.push_back(p);
+        while (i < AngledSortedTanks.size() - 1 && Rotation(LowestPoint, AngledSortedTanks.at(i)->position, AngledSortedTanks.at(i + 1)->position) == 0)
+        {
+            i++;
+        }
+        AngledSortedTanks.at(m) = AngledSortedTanks.at(i);
+        m++;
     }
 
+  
+    forcefield_hull.push_back(AngledSortedTanks.at(0)->position);
+    forcefield_hull.push_back(AngledSortedTanks.at(1)->position);
+    forcefield_hull.push_back(AngledSortedTanks.at(2)->position);
+
+    for (int i = 3; i < m; i++)
+    {
+        while (forcefield_hull.size() > 1 && Rotation(forcefield_hull.at(forcefield_hull.size() - 2), forcefield_hull.at(forcefield_hull.size() - 1), AngledSortedTanks.at(i)->position) != -1)
+        {
+            forcefield_hull.pop_back();
+        }
+        forcefield_hull.push_back(AngledSortedTanks.at(i)->position);
+    }
+    */
+   
 }
