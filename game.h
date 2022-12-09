@@ -29,6 +29,9 @@ class Game
     void ConvexHull(vector<Tank*> LeftMergedTanks);
     double AngleCalculator(vec2 position);
 
+    Node();
+    void::KDtree(Node node, vector<Tank*> tanks, int depth);
+
     //vector<Tank> sort(vector<Tank> sortlist);
 
     Tank& find_closest_enemy(Tank& current_tank);
@@ -57,6 +60,8 @@ class Game
     Surface* screen;
     
     vector<Tank> tanks;
+    vector<Tank*> blue_tanks;
+    vector<Tank*> red_tanks;
 
     vector<Tank*> active_tanks;
     vector<Rocket> rockets;

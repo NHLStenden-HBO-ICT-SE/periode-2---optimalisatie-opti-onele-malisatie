@@ -73,12 +73,14 @@ void Game::init()
     {
         vec2 position{ start_blue_x + ((i % max_rows) * spacing), start_blue_y + ((i / max_rows) * spacing) };
         tanks.push_back(Tank(position.x, position.y, BLUE, &tank_blue, &smoke, 1100.f, position.y + 16, tank_radius, tank_max_health, tank_max_speed));
+        blue_tanks.push_back(&tanks.at(tanks.capacity() - 1));
     }
     //Spawn red tanks
     for (int i = 0; i < num_tanks_red; i++)
     {
         vec2 position{ start_red_x + ((i % max_rows) * spacing), start_red_y + ((i / max_rows) * spacing) };
         tanks.push_back(Tank(position.x, position.y, RED, &tank_red, &smoke, 100.f, position.y + 16, tank_radius, tank_max_health, tank_max_speed));
+        red_tanks.push_back(&tanks.at(tanks.capacity() - 1));
     }
     
     for (int i = 0; i < num_tanks_blue + num_tanks_red; i++)
@@ -204,27 +206,6 @@ void Game::update(float deltaTime)
     //Calculate convex hull for 'rocket barrier'
     ConvexHull(BottomMergedTanks);
 
-    /*
-    for (Tank* tank : LeftMergedTanks)
-    {
-            forcefield_hull.push_back(point_on_hull);
-            vec2 endpoint = LeftMergedTanks.at(LeftMergedTanks.size() - 1)->position;
-
-            for (Tank* tank : LeftMergedTanks)
-            {
-                if ((endpoint == point_on_hull) || left_of_line(point_on_hull, endpoint, tank->position))
-                {
-                    endpoint = tank->position;
-                }
-            }
-            point_on_hull = endpoint;
-
-            if (endpoint == forcefield_hull.at(0))
-            {
-                break;
-            }
-    }
-    */
     //Update rockets
     for (Rocket& rocket : rockets)
     {
@@ -606,11 +587,6 @@ vector<Tank*> Game::AngleTankMerge(vector<Tank*> l_tanks, vector<Tank*> r_tanks)
 }
 
 double Game::AngleCalculator(vec2 position){
-    /*
-    double dot = (LowestPoint.x * position.x) + (LowestPoint.y * position.y);
-    double det = (LowestPoint.x * position.x) - (LowestPoint.y * position.y);
-    return atan2(det, dot);
-    */
    return (atan2((LowestPoint.y - position.y), (position.x - LowestPoint.x)) * (180/PI));
 }
 
@@ -659,31 +635,4 @@ void Game::ConvexHull(vector<Tank*> BottomMergedTanks)
     forcefield_hull.pop_back();
 
 
-    /*
-    int m = 1;
-    for (int i = 1; i < AngledSortedTanks.size(); i++)
-    {
-        while (i < AngledSortedTanks.size() - 1 && Rotation(LowestPoint, AngledSortedTanks.at(i)->position, AngledSortedTanks.at(i + 1)->position) == 0)
-        {
-            i++;
-        }
-        AngledSortedTanks.at(m) = AngledSortedTanks.at(i);
-        m++;
-    }
-
-  
-    forcefield_hull.push_back(AngledSortedTanks.at(0)->position);
-    forcefield_hull.push_back(AngledSortedTanks.at(1)->position);
-    forcefield_hull.push_back(AngledSortedTanks.at(2)->position);
-
-    for (int i = 3; i < m; i++)
-    {
-        while (forcefield_hull.size() > 1 && Rotation(forcefield_hull.at(forcefield_hull.size() - 2), forcefield_hull.at(forcefield_hull.size() - 1), AngledSortedTanks.at(i)->position) != -1)
-        {
-            forcefield_hull.pop_back();
-        }
-        forcefield_hull.push_back(AngledSortedTanks.at(i)->position);
-    }
-    */
-   
 }
