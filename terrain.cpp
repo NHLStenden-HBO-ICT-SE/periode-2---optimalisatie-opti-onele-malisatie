@@ -1,5 +1,6 @@
 #include "precomp.h"
 #include "terrain.h"
+#include <vector>
 
 namespace fs = std::filesystem;
 namespace Tmpl8
@@ -143,7 +144,7 @@ namespace Tmpl8
         queue.emplace();
         queue.back().push_back(&tiles.at(pos_y).at(pos_x));
 
-        std::vector<TerrainTile*> visited;
+        vector<TerrainTile*> visited;
 
         bool route_found = false;
         vector<TerrainTile*> current_route;
@@ -181,7 +182,7 @@ namespace Tmpl8
         if (route_found)
         {
             //Convert route to vec2 to prevent dangling pointers
-            std::vector<vec2> route;
+            vector<vec2> route;
             for (TerrainTile* tile : current_route)
             {
                 route.push_back(vec2((float)tile->position_x * sprite_size, (float)tile->position_y * sprite_size));
@@ -191,7 +192,7 @@ namespace Tmpl8
         }
         else
         {
-            return  std::vector<vec2>();
+            return  vector<vec2>();
         }
 
     }

@@ -1,5 +1,6 @@
 #include "precomp.h"
 #include "tank.h"
+#include <vector>
 
 
 namespace Tmpl8
@@ -70,7 +71,7 @@ void Tank::tick(Terrain& terrain)
     }
 }
 
-void Tank::set_route(const std::vector<vec2>& route)
+void Tank::set_route(const vector<vec2>& route)
 {
     if (route.size() > 0)
     {
