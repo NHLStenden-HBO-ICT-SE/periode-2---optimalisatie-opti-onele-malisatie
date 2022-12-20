@@ -119,29 +119,31 @@
   </ItemDefinitionGroup>
   <!-- END Custom section -->
   <ItemGroup>
+    <ClCompile Include="convexhull.cpp" />
     <ClCompile Include="explosion.cpp" />
     <ClCompile Include="game.cpp" />
-    <ClCompile Include="KDtree.cpp" />
     <ClCompile Include="particle_beam.cpp" />
     <ClCompile Include="rocket.cpp" />
     <ClCompile Include="smoke.cpp" />
     <ClCompile Include="surface.cpp" />
     <ClCompile Include="tank.cpp" />
+    <ClCompile Include="tankgrid.cpp" />
     <ClCompile Include="template.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="terrain.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="convexhull.h" />
     <ClInclude Include="explosion.h" />
     <ClInclude Include="game.h" />
-    <ClInclude Include="KDtree.h" />
     <ClInclude Include="particle_beam.h" />
     <ClInclude Include="precomp.h" />
     <ClInclude Include="rocket.h" />
     <ClInclude Include="smoke.h" />
     <ClInclude Include="surface.h" />
     <ClInclude Include="tank.h" />
+    <ClInclude Include="tankgrid.h" />
     <ClInclude Include="template.h" />
     <ClInclude Include="terrain.h" />
     <ClInclude Include="thread_pool.h" />

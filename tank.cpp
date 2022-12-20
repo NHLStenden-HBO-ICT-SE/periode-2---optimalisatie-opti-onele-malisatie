@@ -1,43 +1,49 @@
 #include "precomp.h"
 #include "tank.h"
+#include "tankgrid.h"
 #include <vector>
+
 
 
 namespace Tmpl8
 {
-Tank::Tank(
-    float pos_x,
-    float pos_y,
-    allignments allignment,
-    Sprite* tank_sprite,
-    Sprite* smoke_sprite,
-    float tar_x,
-    float tar_y,
-    float collision_radius,
-    int health,
-    float max_speed)
-    : position(pos_x, pos_y),
-      allignment(allignment),
-      target(tar_x, tar_y),
-      health(health),
-      collision_radius(collision_radius),
-      max_speed(max_speed),
-      force(0, 0),
-      reload_time(1),
-      reloaded(false),
-      speed(0),
-      active(true),
-      current_frame(0),
-      tank_sprite(tank_sprite),
-      smoke_sprite(smoke_sprite)
-{
-}
+    Tank::Tank(
+        float pos_x,
+        float pos_y,
+        allignments allignment,
+        Sprite* tank_sprite,
+        Sprite* smoke_sprite,
+        float tar_x,
+        float tar_y,
+        float collision_radius,
+        int health,
+        float max_speed)
+        : position(pos_x, pos_y),
+        allignment(allignment),
+        target(tar_x, tar_y),
+        health(health),
+        collision_radius(collision_radius),
+        max_speed(max_speed),
+        force(0, 0),
+        reload_time(1),
+        reloaded(false),
+        speed(0),
+        active(true),
+        current_frame(0),
+        tank_sprite(tank_sprite),
+        smoke_sprite(smoke_sprite),
+        //grid_(grid),
+        prev_(NULL),
+        next_(NULL)
+    {
+        //grid_.add(this);
+    }
 
 Tank::~Tank()
 {
 }
 
-void Tank::tick(Terrain& terrain)
+void Tank::tick(Terrain& terrain, TankGrid& grid_)
 {
     vec2 direction = vec2(0, 0);
 
@@ -48,7 +54,15 @@ void Tank::tick(Terrain& terrain)
 
     //Update using accumulated force
     speed = direction + force;
+
+    //old pos
+    vec2 oldposition = position;
+
+    // new pos
     position += speed * max_speed * 0.5f;
+
+    //this = the tank
+    grid_.move(this, oldposition);
 
     //Update reload time
     if (--reload_time <= 0.0f)
@@ -69,6 +83,10 @@ void Tank::tick(Terrain& terrain)
             current_route.erase(current_route.begin());
         }
     }
+
+
+
+
 }
 
 void Tank::set_route(const vector<vec2>& route)
