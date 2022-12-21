@@ -20,15 +20,7 @@ class Game
     void insertion_sort_tanks_health(const vector<Tank>& original, vector<const Tank*>& sorted_tanks, int begin, int end);
     void draw_health_bars(const vector<const Tank*>& sorted_tanks, const int team);
     void measure_performance();
-    vector<Tank*> BottomTankSort(vector<Tank*> tanks);
-    vector<Tank*> BottomTankMerge(vector<Tank*> l_tanks, vector<Tank*> r_tanks);
-    vector<Tank*> AngleTankSort(vector<Tank*> tanks);
-    vector<Tank*> AngleTankMerge(vector<Tank*> l_tanks, vector<Tank*> r_tanks);
-    int Rotation(vec2 LastHull, vec2 pos2, vec2 pos3);
-    double distSqr(vec2 pos1, vec2 pos2);
-    void ConvexHull(vector<Tank*> LeftMergedTanks);
-    double AngleCalculator(vec2 position);
-
+    
     //vector<Tank> sort(vector<Tank> sortlist);
 
     Tank& find_closest_enemy(Tank& current_tank);
@@ -57,6 +49,8 @@ class Game
     Surface* screen;
     
     vector<Tank> tanks;
+    vector<Tank*> blue_tanks;
+    vector<Tank*> red_tanks;
 
     vector<Tank*> active_tanks;
     vector<Rocket> rockets;
@@ -67,12 +61,12 @@ class Game
     Terrain background_terrain;
     vector<vec2> forcefield_hull;
 
-    vec2 LowestPoint;
-
     Font* frame_count_font;
-    long long frame_count = 0;
+    int frame_count = 0;
 
     bool lock_update = false;
+
+    
 
     //Checks if a point lies on the left of an arbitrary angled line
     bool left_of_line(vec2 line_start, vec2 line_end, vec2 point);
