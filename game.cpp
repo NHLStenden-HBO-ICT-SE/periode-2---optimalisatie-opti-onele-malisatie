@@ -7,8 +7,8 @@
 using namespace std;
 
 //2048
-constexpr auto num_tanks_blue = 348;
-constexpr auto num_tanks_red = 348;
+constexpr auto num_tanks_blue = 2048;
+constexpr auto num_tanks_red = 2048;
 
 constexpr auto tank_max_health = 1000;
 constexpr auto rocket_hit_value = 60;
@@ -23,6 +23,8 @@ constexpr auto max_frames = 2000;
 //Global performance timer
 //jasper time: 84736.2
 //Quickest jasper time: 77339.3
+//Jesse time: 85699.5
+//Quickest Jesse time: 57326.5
 constexpr auto REF_PERFORMANCE = 85699.5; //UPDATE THIS WITH YOUR REFERENCE PERFORMANCE (see console after 2k frames)
 static timer perf_timer;
 static float duration;
@@ -223,6 +225,7 @@ void Game::update(float deltaTime)
         //Check if rocket collides with enemy tank, spawn explosion, and if tank is destroyed spawn a smoke plume
         for (Tank* tank : active_tanks)
         {
+
             if ((tank->allignment != rocket.allignment) && rocket.intersects(tank->position, tank->collision_radius))
             {
                 explosions.push_back(Explosion(&explosion, tank->position));

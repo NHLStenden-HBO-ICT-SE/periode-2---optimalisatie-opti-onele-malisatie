@@ -13,7 +13,7 @@ namespace Tmpl8 {
         {
             for (int y = 0; y < NUM_CELLSy; y++)
             {
-                cells_[x][y] = nullptr;
+                cells_[x][y] = NULL;
             }
         }
     };
@@ -25,10 +25,10 @@ namespace Tmpl8 {
             int cellX = (int)(tank->position.x / TankGrid::CELL_SIZE);
             int cellY = (int)(tank->position.y / TankGrid::CELL_SIZE);
             // Add to the front of list for the cell it's in.
-            tank->prev_ = nullptr;
+            tank->prev_ = NULL;
             tank->next_ = cells_[cellX][cellY];
             cells_[cellX][cellY] = tank;
-            if (tank->next_ != nullptr)
+            if (tank->next_ != NULL)
             {
                 tank->next_->prev_ = tank;
             }
@@ -45,11 +45,11 @@ namespace Tmpl8 {
             // If it didn't change cells, we're done.
             if (oldCellX == cellX && oldCellY == cellY) return;
             // Unlink it from the list of its old cell.
-            if (tank->prev_ != nullptr)
+            if (tank->prev_ != NULL)
             {
                 tank->prev_->next_ = tank->next_;
             }
-            if (tank->next_ != nullptr)
+            if (tank->next_ != NULL)
             {
                 tank->next_->prev_ = tank->prev_;
             }
@@ -69,7 +69,7 @@ namespace Tmpl8 {
 			
 				// Handle other units in this cell.
 
-            if (tank->next_ != nullptr)
+            if (tank->next_ != NULL)
             {
                 Collision(tank, tank->next_);
             };
@@ -90,7 +90,7 @@ namespace Tmpl8 {
 
             Tank* other2_tank = other_tank;
 
-        while(other2_tank != nullptr){
+        while(other2_tank != NULL){
             if (other2_tank->active) {
                 vec2 dir = tank->get_position() - other2_tank->get_position();
                 if (dir != 0) {
