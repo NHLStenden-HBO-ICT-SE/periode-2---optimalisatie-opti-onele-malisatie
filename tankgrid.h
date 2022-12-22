@@ -8,11 +8,13 @@ namespace Tmpl8
 		TankGrid();
 		void add(Tank* tank);
 		void move(Tank* tank, vec2 oldposition);
+		void CheckCollision(Tank* tank);
+		void Collision(Tank* tank, Tank* other_tank);
 
 		//1420/720
-        static const int CELL_SIZE = 72;
-		static const int NUM_CELLSx = 20;
-		static const int NUM_CELLSy = 10;
+        static const int CELL_SIZE = 12;
+		static const int NUM_CELLSx = 120;
+		static const int NUM_CELLSy = 60;
 		static const int NUM_CELLStotal = NUM_CELLSx * NUM_CELLSy;
 	private:
         Tank* cells_[NUM_CELLSx][NUM_CELLSy];

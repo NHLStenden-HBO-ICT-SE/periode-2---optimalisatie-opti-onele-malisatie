@@ -33,8 +33,8 @@ namespace Tmpl8
         tank_sprite(tank_sprite),
         smoke_sprite(smoke_sprite),
         //grid_(grid),
-        prev_(NULL),
-        next_(NULL)
+        prev_(nullptr),
+        next_(nullptr)
     {
         //grid_.add(this);
     }
