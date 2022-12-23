@@ -84,9 +84,9 @@ namespace Tmpl8 {
     }
 
 
-    void TankGrid::Collision(Tank* tank, Tank* other_tank) {
+    void TankGrid::Collision(Tank* tank, Tank* tank2) {
 
-        //Tank* other_tank = other_tank;
+        Tank* other_tank = tank2;
 
         while (other_tank != nullptr) {
             if (other_tank->active) {
@@ -103,13 +103,14 @@ namespace Tmpl8 {
                     }
                 }
             }
+            other_tank = other_tank->next_;
         }
-        other_tank = other_tank->next_;
+        
     }
 
-            vector<Tank*> TankGrid::RocketCheckCollision(Rocket * rocket) {
-                int cellRocketX = (int)(rocket->position.x / TankGrid::CELL_SIZE);
-                int cellRocketY = (int)(rocket->position.y / TankGrid::CELL_SIZE);
+            vector<Tank*> TankGrid::RocketCheckCollision(vec2 position) {
+                int cellRocketX = (int)(position.x / TankGrid::CELL_SIZE);
+                int cellRocketY = (int)(position.y / TankGrid::CELL_SIZE);
                 vector<Tank*> TanksInArea;
                 // Handle other units in this cell.
             //Scans through the cells around the tank in a 3 by 3 grid.

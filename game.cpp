@@ -221,21 +221,21 @@ void Game::update(float deltaTime)
         rocket.tick();
 
         //Check if rocket collides with enemy tank, spawn explosion, and if tank is destroyed spawn a smoke plume
-        Tank* tankchecklist = grid.RocketCheckCollision(&rocket);
+        vector<Tank*> tankchecklist = grid.RocketCheckCollision(rocket.position);
 
         for (Tank* tank : tankchecklist)
         {
-         if ((tank->allignment != rocket->allignment) && rocket->intersects(tank->position, tank->collision_radius))
+         if ((tank->allignment != rocket.allignment) && rocket.intersects(tank->position, tank->collision_radius))
             {
                             
-             explosions->push_back(Explosion(&explosion, tank->position));
+             explosions.push_back(Explosion(&explosion, tank->position));
 
              if (tank->hit(rocket_hit_value))
              {
-                smokes->push_back(Smoke(smoke, tank->position - vec2(7, 24)));
+                smokes.push_back(Smoke(smoke, tank->position - vec2(7, 24)));
              }
 
-               rocket->active = false;
+               rocket.active = false;
             }
         }
 
