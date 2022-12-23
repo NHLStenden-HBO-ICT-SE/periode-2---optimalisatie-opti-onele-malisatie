@@ -20,6 +20,8 @@ class Game
     void insertion_sort_tanks_health(const vector<Tank>& original, vector<const Tank*>& sorted_tanks, int begin, int end);
     void draw_health_bars(const vector<const Tank*>& sorted_tanks, const int team);
     void measure_performance();
+    void setExplosions(vec2 position);
+    void setSmokes(vec2 position);
     
     //vector<Tank> sort(vector<Tank> sortlist);
 

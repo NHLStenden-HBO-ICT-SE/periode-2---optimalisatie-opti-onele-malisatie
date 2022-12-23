@@ -7,8 +7,8 @@
 using namespace std;
 
 //2048
-constexpr auto num_tanks_blue = 348;
-constexpr auto num_tanks_red = 348;
+constexpr auto num_tanks_blue = 2048;
+constexpr auto num_tanks_red = 2048;
 
 constexpr auto tank_max_health = 1000;
 constexpr auto rocket_hit_value = 60;
@@ -220,22 +220,14 @@ void Game::update(float deltaTime)
     {
         rocket.tick();
 
+
+
+
         //Check if rocket collides with enemy tank, spawn explosion, and if tank is destroyed spawn a smoke plume
-        for (Tank* tank : active_tanks)
-        {
-            if ((tank->allignment != rocket.allignment) && rocket.intersects(tank->position, tank->collision_radius))
-            {
-                explosions.push_back(Explosion(&explosion, tank->position));
+        grid.RocketCheckCollision(&rocket);
 
-                if (tank->hit(rocket_hit_value))
-                {
-                    smokes.push_back(Smoke(smoke, tank->position - vec2(7, 24)));
-                }
 
-                rocket.active = false;
-                break;
-            }
-        }
+
     }
 
     //Disable rockets if they collide with the "forcefield"
@@ -478,5 +470,13 @@ void Game::tick(float deltaTime)
     frame_count++;
     string frame_count_string = "FRAME: " + std::to_string(frame_count);
     frame_count_font->print(screen, frame_count_string.c_str(), 350, 580);
+}
+
+void Game::setExplosions(vec2 position){
+     explosions.push_back(Explosion(&explosion, position));
+}
+
+void Game::setSmokes(vec2 position){
+    smokes.push_back(Smoke(smoke, position - vec2(7, 24)));
 }
 
