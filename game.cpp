@@ -220,13 +220,24 @@ void Game::update(float deltaTime)
     {
         rocket.tick();
 
-
-
-
         //Check if rocket collides with enemy tank, spawn explosion, and if tank is destroyed spawn a smoke plume
-        grid.RocketCheckCollision(&rocket);
+        Tank* tankchecklist = grid.RocketCheckCollision(&rocket);
 
+        for (Tank* tank : tankchecklist)
+        {
+         if ((tank->allignment != rocket->allignment) && rocket->intersects(tank->position, tank->collision_radius))
+            {
+                            
+             explosions->push_back(Explosion(&explosion, tank->position));
 
+             if (tank->hit(rocket_hit_value))
+             {
+                smokes->push_back(Smoke(smoke, tank->position - vec2(7, 24)));
+             }
+
+               rocket->active = false;
+            }
+        }
 
     }
 
@@ -471,12 +482,3 @@ void Game::tick(float deltaTime)
     string frame_count_string = "FRAME: " + std::to_string(frame_count);
     frame_count_font->print(screen, frame_count_string.c_str(), 350, 580);
 }
-
-void Game::setExplosions(vec2 position){
-     explosions.push_back(Explosion(&explosion, position));
-}
-
-void Game::setSmokes(vec2 position){
-    smokes.push_back(Smoke(smoke, position - vec2(7, 24)));
-}
-
