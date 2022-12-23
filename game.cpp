@@ -23,8 +23,6 @@ constexpr auto max_frames = 2000;
 //Global performance timer
 //jasper time: 84736.2
 //Quickest jasper time: 77339.3
-//Jesse time: 85699.5
-//Quickest Jesse time: 57326.5
 constexpr auto REF_PERFORMANCE = 85699.5; //UPDATE THIS WITH YOUR REFERENCE PERFORMANCE (see console after 2k frames)
 static timer perf_timer;
 static float duration;
@@ -223,22 +221,24 @@ void Game::update(float deltaTime)
         rocket.tick();
 
         //Check if rocket collides with enemy tank, spawn explosion, and if tank is destroyed spawn a smoke plume
-        for (Tank* tank : active_tanks)
+        vector<Tank*> tankchecklist = grid.RocketCheckCollision(rocket.position);
+
+        for (Tank* tank : tankchecklist)
         {
-
-            if ((tank->allignment != rocket.allignment) && rocket.intersects(tank->position, tank->collision_radius))
+         if ((tank->allignment != rocket.allignment) && rocket.intersects(tank->position, tank->collision_radius))
             {
-                explosions.push_back(Explosion(&explosion, tank->position));
+                            
+             explosions.push_back(Explosion(&explosion, tank->position));
 
-                if (tank->hit(rocket_hit_value))
-                {
-                    smokes.push_back(Smoke(smoke, tank->position - vec2(7, 24)));
-                }
+             if (tank->hit(rocket_hit_value))
+             {
+                smokes.push_back(Smoke(smoke, tank->position - vec2(7, 24)));
+             }
 
-                rocket.active = false;
-                break;
+               rocket.active = false;
             }
         }
+
     }
 
     //Disable rockets if they collide with the "forcefield"
@@ -482,4 +482,3 @@ void Game::tick(float deltaTime)
     string frame_count_string = "FRAME: " + std::to_string(frame_count);
     frame_count_font->print(screen, frame_count_string.c_str(), 350, 580);
 }
-

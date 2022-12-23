@@ -13,90 +13,88 @@ namespace Tmpl8 {
         {
             for (int y = 0; y < NUM_CELLSy; y++)
             {
-                cells_[x][y] = NULL;
+                cells_[x][y] = nullptr;
             }
         }
     };
 
-        void TankGrid::add(Tank* tank)
+    void TankGrid::add(Tank* tank)
+    {
+
+        // Determine which grid cell it's in.
+        int cellX = (int)(tank->position.x / TankGrid::CELL_SIZE);
+        int cellY = (int)(tank->position.y / TankGrid::CELL_SIZE);
+        // Add to the front of list for the cell it's in.
+        tank->prev_ = nullptr;
+        tank->next_ = cells_[cellX][cellY];
+        cells_[cellX][cellY] = tank;
+        if (tank->next_ != nullptr)
         {
-            
-            // Determine which grid cell it's in.
-            int cellX = (int)(tank->position.x / TankGrid::CELL_SIZE);
-            int cellY = (int)(tank->position.y / TankGrid::CELL_SIZE);
-            // Add to the front of list for the cell it's in.
-            tank->prev_ = NULL;
-            tank->next_ = cells_[cellX][cellY];
-            cells_[cellX][cellY] = tank;
-            if (tank->next_ != NULL)
-            {
-                tank->next_->prev_ = tank;
-            }
-        };
+            tank->next_->prev_ = tank;
+        }
+    };
 
-        void TankGrid::move(Tank* tank, vec2 oldposition)
+    void TankGrid::move(Tank* tank, vec2 oldposition)
+    {
+        // See which cell it was in.
+        int oldCellX = (int)(oldposition.x / TankGrid::CELL_SIZE);
+        int oldCellY = (int)(oldposition.y / TankGrid::CELL_SIZE);
+        // See which cell it's moving to.
+        int cellX = (int)(tank->position.x / TankGrid::CELL_SIZE);
+        int cellY = (int)(tank->position.y / TankGrid::CELL_SIZE);
+        // If it didn't change cells, we're done.
+        if (oldCellX == cellX && oldCellY == cellY) return;
+        // Unlink it from the list of its old cell.
+        if (tank->prev_ != nullptr)
         {
-            // See which cell it was in.
-            int oldCellX = (int)(oldposition.x / TankGrid::CELL_SIZE);
-            int oldCellY = (int)(oldposition.y / TankGrid::CELL_SIZE);
-            // See which cell it's moving to.
-            int cellX = (int)(tank->position.x / TankGrid::CELL_SIZE);
-            int cellY = (int)(tank->position.y / TankGrid::CELL_SIZE);
-            // If it didn't change cells, we're done.
-            if (oldCellX == cellX && oldCellY == cellY) return;
-            // Unlink it from the list of its old cell.
-            if (tank->prev_ != NULL)
-            {
-                tank->prev_->next_ = tank->next_;
-            }
-            if (tank->next_ != NULL)
-            {
-                tank->next_->prev_ = tank->prev_;
-            }
-            // If it's the head of a list, remove it.
-            if (cells_[oldCellX][oldCellY] == tank)
-            {
-                cells_[oldCellX][oldCellY] = tank->next_;
-            }
-            // Add it back to the grid at its new cell.
-            add(tank);
+            tank->prev_->next_ = tank->next_;
         }
-
-        void TankGrid::CheckCollision(Tank* tank) {
-            int cellX = (int)(tank->position.x / TankGrid::CELL_SIZE);
-            int cellY = (int)(tank->position.y / TankGrid::CELL_SIZE);
-			
-			
-				// Handle other units in this cell.
-
-            if (tank->next_ != NULL)
-            {
-                Collision(tank, tank->next_);
-            };
-				// Also try the neighboring cells.  
-				
-				if (cellX > 0 && cellY > 0){Collision(tank, cells_[cellX - 1][cellY + 1]);}                     // < ^
-				if (cellX > 0) Collision(tank, cells_[cellX - 1][cellY]);                                       // <
-				if (cellX > 0 && cellY > 0) Collision(tank, cells_[cellX - 1][cellY - 1]);                      // < V
-				if (cellY < NUM_CELLSy) Collision(tank, cells_[cellX][cellY + 1]);                              // ^
-				if (cellY > 0) Collision(tank, cells_[cellX][cellY - 1]);                                       // V
-                if (cellX < NUM_CELLSx && cellY > 0) { Collision(tank, cells_[cellX + 1][cellY + 1]); }         // > ^
-				if (cellX < NUM_CELLSx) Collision(tank, cells_[cellX + 1][cellY]);                              // >
-                if (cellX < NUM_CELLSx && cellY > NUM_CELLSy) Collision(tank, cells_[cellX + 1][cellY - 1]);    // > V  
-				
+        if (tank->next_ != nullptr)
+        {
+            tank->next_->prev_ = tank->prev_;
         }
+        // If it's the head of a list, remove it.
+        if (cells_[oldCellX][oldCellY] == tank)
+        {
+            cells_[oldCellX][oldCellY] = tank->next_;
+        }
+        // Add it back to the grid at its new cell.
+        add(tank);
+    }
 
-        void TankGrid::Collision(Tank* tank, Tank* other_tank) {
+    void TankGrid::CheckCollision(Tank* tank) {
+        int cellX = (int)(tank->position.x / TankGrid::CELL_SIZE);
+        int cellY = (int)(tank->position.y / TankGrid::CELL_SIZE);
 
-            Tank* other2_tank = other_tank;
+        // Handle other units in this cell.
+    //Scans through the cells around the tank in a 3 by 3 grid.
+        for (int i = 0; i < 3; i++)
+        {
+            for (int j = 0; j < 3; j++)
+            {
+                if (cells_[cellX - 1 + i][cellY - 1 + j] != cells_[cellX][cellY])
+                {
+                    Collision(tank, cells_[cellX - 1 + i][cellY - 1 + j]);
+                }
+                else {
+                    Collision(tank, tank->next_);
+                }
+            }
+        }
+    }
 
-        while(other2_tank != NULL){
-            if (other2_tank->active) {
-                vec2 dir = tank->get_position() - other2_tank->get_position();
+
+    void TankGrid::Collision(Tank* tank, Tank* tank2) {
+
+        Tank* other_tank = tank2;
+
+        while (other_tank != nullptr) {
+            if (other_tank->active) {
+                vec2 dir = tank->get_position() - other_tank->get_position();
                 if (dir != 0) {
                     float dir_squared_len = dir.sqr_length();
 
-                    float col_squared_len = (tank->get_collision_radius() + other2_tank->get_collision_radius());
+                    float col_squared_len = (tank->get_collision_radius() + other_tank->get_collision_radius());
                     col_squared_len *= col_squared_len;
 
                     if (dir_squared_len < col_squared_len)
@@ -105,8 +103,32 @@ namespace Tmpl8 {
                     }
                 }
             }
-			other2_tank = other2_tank->next_;
+            other_tank = other_tank->next_;
         }
-        }
+        
+    }
 
+            vector<Tank*> TankGrid::RocketCheckCollision(vec2 position) {
+                int cellRocketX = (int)(position.x / TankGrid::CELL_SIZE);
+                int cellRocketY = (int)(position.y / TankGrid::CELL_SIZE);
+                vector<Tank*> TanksInArea;
+                // Handle other units in this cell.
+            //Scans through the cells around the tank in a 3 by 3 grid.
+                for (int i = 0; i < 3; i++)
+                {
+                    for (int j = 0; j < 3; j++)
+                    {
+                        
+                        Tank* tank = cells_[cellRocketX - 1 + i][cellRocketY - 1 + j];
+                            while(tank != nullptr){
+                                if (tank->active) {
+                                    TanksInArea.push_back(tank);
+                                }
+                            tank = tank->next_;
+                            }
+                    }
+                }
+                return TanksInArea;
+            }
+            
 }
