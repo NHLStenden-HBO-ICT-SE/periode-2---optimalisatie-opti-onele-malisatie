@@ -25,7 +25,7 @@ constexpr auto max_frames = 2000;
 //Quickest jasper time: 77339.3
 //Jesse time: 85699.5
 //Quickest Jesse time: 36083.7
-constexpr auto REF_PERFORMANCE = 85699.5; //UPDATE THIS WITH YOUR REFERENCE PERFORMANCE (see console after 2k frames)
+constexpr auto REF_PERFORMANCE = 84736.2; //UPDATE THIS WITH YOUR REFERENCE PERFORMANCE (see console after 2k frames)
 static timer perf_timer;
 static float duration;
 
@@ -52,7 +52,8 @@ const static vec2 rocket_size(6, 6);
 const static float tank_radius = 3.f;
 const static float rocket_radius = 5.f;
 
-int tanknumber = 0;
+
+
 
 //Create tankgrid and point to it for tank creation
 
@@ -71,17 +72,29 @@ void Game::init()
 
     tanks.reserve(num_tanks_blue + num_tanks_red);
 
-    uint max_rows = 24;
+	static uint max_rows = 24;
 
-    float start_blue_x = tank_size.x + 40.0f;
-    float start_blue_y = tank_size.y + 30.0f;
+	static float start_blue_x = tank_size.x + 40.0f;
+	static float start_blue_y = tank_size.y + 30.0f;
 
-    float start_red_x = 1088.0f;
-    float start_red_y = tank_size.y + 30.0f;
+	static float start_red_x = 1088.0f;
+	static float start_red_y = tank_size.y + 30.0f;
 
-    float spacing = 7.5f;   
+	static float spacing = 7.5f;
+    
     
     //Spawn blue tanks
+    //thread t1(&Game::CreateBlueTanks, this);
+    //thread t2(&Game::CreateRedTanks, this);
+
+    //t1.join();
+    //t2.join();
+
+    const auto processor_count = thread::hardware_concurrency();
+
+
+    cout << processor_count;
+
     for (int i = 0; i < num_tanks_blue; i++)
     {
         vec2 position{ start_blue_x + ((i % max_rows) * spacing), start_blue_y + ((i / max_rows) * spacing) };
@@ -97,7 +110,7 @@ void Game::init()
         //grid.add(&tanks.at(i + num_tanks_blue ));
  //       red_tanks.push_back(&tanks.at(tanks.capacity() - 1));
     }
-
+    
     for (int i = 0; i < tanks.size(); i++)
     {
         grid.add(&tanks.at(i));
@@ -164,7 +177,7 @@ void Game::update(float deltaTime)
 {
     //Calculate the route to the destination for each tank using BFS
     //Initializing routes here so it gets counted for performance..
-    int iri = 0;
+   
     if (frame_count == 0)
     {
         for (Tank& t : tanks)
@@ -176,19 +189,13 @@ void Game::update(float deltaTime)
 
     //Check tank collision and nudge tanks away from each other
     for (Tank* tank : active_tanks)
-    {
-        if (frame_count == 14)
-        {
-            tanknumber++;
-        }
+    {   
         grid.CheckCollision(tank);
     }
     
     //Update tanks
     for (Tank* tank : active_tanks)
     {
-        
-        
             //Move tanks according to speed and nudges (see above) also reload
             tank->tick(background_terrain, gridpoint);
 
@@ -213,9 +220,7 @@ void Game::update(float deltaTime)
     forcefield_hull.clear();
 
     //Calculate convex hull for 'rocket barrier'
-    Convexhull convex;
-    convex.SetTankList(active_tanks);
-    forcefield_hull =  convex.ConvexHullcreate();
+    thread t1(&Game::convexThread, this);
 
     //Update rockets
     for (Rocket& rocket : rockets)
@@ -243,7 +248,7 @@ void Game::update(float deltaTime)
         }
 
     }
-
+    t1.join();
     //Disable rockets if they collide with the "forcefield"
     //Hint: A point to convex hull intersection test might be better here? :) (Disable if outside)
     for (Rocket& rocket : rockets)
@@ -484,4 +489,10 @@ void Game::tick(float deltaTime)
     frame_count++;
     string frame_count_string = "FRAME: " + std::to_string(frame_count);
     frame_count_font->print(screen, frame_count_string.c_str(), 350, 580);
+}
+
+void Game::convexThread() {
+    Convexhull convex;
+    convex.SetTankList(active_tanks);
+    forcefield_hull = convex.ConvexHullcreate();
 }
