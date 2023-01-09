@@ -23,6 +23,8 @@ constexpr auto max_frames = 2000;
 //Global performance timer
 //jasper time: 84736.2
 //Quickest jasper time: 77339.3
+//Jesse time: 85699.5
+//Quickest Jesse time: 57326.5
 constexpr auto REF_PERFORMANCE = 85699.5; //UPDATE THIS WITH YOUR REFERENCE PERFORMANCE (see console after 2k frames)
 static timer perf_timer;
 static float duration;
@@ -225,7 +227,8 @@ void Game::update(float deltaTime)
 
         for (Tank* tank : tankchecklist)
         {
-         if ((tank->allignment != rocket->allignment) && rocket->intersects(tank->position, tank->collision_radius))
+
+            if ((tank->allignment != rocket.allignment) && rocket.intersects(tank->position, tank->collision_radius))
             {
                             
              explosions->push_back(Explosion(&explosion, tank->position));

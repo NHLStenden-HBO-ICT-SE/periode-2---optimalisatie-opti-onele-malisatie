@@ -13,7 +13,7 @@ namespace Tmpl8 {
         {
             for (int y = 0; y < NUM_CELLSy; y++)
             {
-                cells_[x][y] = nullptr;
+                cells_[x][y] = NULL;
             }
         }
     };
