@@ -10,7 +10,7 @@ namespace Tmpl8
 		void move(Tank* tank, vec2 oldposition);
 		void CheckCollision(Tank* tank);
 		void Collision(Tank* tank, Tank* other_tank);
-		vector<Tank*> RocketCheckCollision(Rocket* rocket);
+		vector<Tank*> RocketCheckCollision(vec2 position);
 
 		//1420/720
         static const int CELL_SIZE = 12;
