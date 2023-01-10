@@ -21,6 +21,9 @@ class Game
     void draw_health_bars(const vector<const Tank*>& sorted_tanks, const int team);
     void measure_performance();
     void convexThread();
+    void addToGrid();
+    void addToActive();
+    void drawHealthBars();
     vector<Explosion*> getExplosions();
     vector<Smoke*> getSmokes();
     

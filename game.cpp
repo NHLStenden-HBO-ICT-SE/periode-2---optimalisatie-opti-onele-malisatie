@@ -52,7 +52,7 @@ const static vec2 rocket_size(6, 6);
 const static float tank_radius = 3.f;
 const static float rocket_radius = 5.f;
 
-
+ThreadPool threads(thread::hardware_concurrency());
 
 
 //Create tankgrid and point to it for tank creation
@@ -110,7 +110,7 @@ void Game::init()
         //grid.add(&tanks.at(i + num_tanks_blue ));
  //       red_tanks.push_back(&tanks.at(tanks.capacity() - 1));
     }
-    
+    /*
     for (int i = 0; i < tanks.size(); i++)
     {
         grid.add(&tanks.at(i));
@@ -120,6 +120,15 @@ void Game::init()
     {
         active_tanks.push_back(&tanks.at(i));
     }
+    */
+
+    thread t1(&Game::addToGrid, this);
+    thread t2(&Game::addToActive, this);
+    //threads.enqueue([this] { addToGrid(); });
+    //threads.enqueue([this] { addToActive(); });
+
+    t1.join();
+    t2.join();
 
     particle_beams.push_back(Particle_beam(vec2(590, 327), vec2(100, 50), &particle_beam_sprite, particle_beam_hit_value));
     particle_beams.push_back(Particle_beam(vec2(64, 64), vec2(100, 50), &particle_beam_sprite, particle_beam_hit_value));
@@ -127,6 +136,19 @@ void Game::init()
 
     
 
+}
+
+void Game::addToGrid() {
+    for (int i = 0; i < tanks.size(); i++)
+    {
+        grid.add(&tanks.at(i));
+    }
+}
+void Game::addToActive() {
+    for (int i = 0; i < num_tanks_blue + num_tanks_red; i++)
+    {
+        active_tanks.push_back(&tanks.at(i));
+    }
 }
 
 // -----------------------------------------------------------
@@ -220,7 +242,8 @@ void Game::update(float deltaTime)
     forcefield_hull.clear();
 
     //Calculate convex hull for 'rocket barrier'
-    thread t1(&Game::convexThread, this);
+    //thread t1(&Game::convexThread, this);
+    threads.enqueue([this] { convexThread(); });
 
     //Update rockets
     for (Rocket& rocket : rockets)
@@ -248,7 +271,7 @@ void Game::update(float deltaTime)
         }
 
     }
-    t1.join();
+    //t1.join();
     //Disable rockets if they collide with the "forcefield"
     //Hint: A point to convex hull intersection test might be better here? :) (Disable if outside)
     for (Rocket& rocket : rockets)
@@ -306,7 +329,6 @@ void Game::update(float deltaTime)
 
 }
 
-
 // -----------------------------------------------------------
 // Draw all sprites to the screen
 // (It is not recommended to multi-thread this function)
@@ -318,6 +340,9 @@ void Game::draw()
 
     //Draw background
     background_terrain.draw(screen);
+
+    thread t1(&Game::drawHealthBars, this);
+   
 
     //Draw sprites
     for (int i = 0; i < num_tanks_blue + num_tanks_red; i++)
@@ -355,14 +380,21 @@ void Game::draw()
         line_start.x += HEALTHBAR_OFFSET;
         line_end.x += HEALTHBAR_OFFSET;
         screen->line(line_start, line_end, 0x0000ff);
-    }
+    }   
+     //threads.enqueue([this] { drawHealthBars(); });
+    t1.join();
+   
+}
 
+void Game::drawHealthBars(){
     //Draw sorted health bars
     for (int t = 0; t < 2; t++)
     {
+
         const int NUM_TANKS = ((t < 1) ? num_tanks_blue : num_tanks_red);
 
         const int begin = ((t < 1) ? 0 : num_tanks_blue);
+
         vector<const Tank*> sorted_tanks;
         insertion_sort_tanks_health(tanks, sorted_tanks, begin, begin + NUM_TANKS);
         sorted_tanks.erase(std::remove_if(sorted_tanks.begin(), sorted_tanks.end(), [](const Tank* tank) { return !tank->active; }), sorted_tanks.end());
@@ -450,6 +482,7 @@ void Tmpl8::Game::measure_performance()
             duration = perf_timer.elapsed();
             cout << "Duration was: " << duration << " (Replace REF_PERFORMANCE with this value)" << endl;
             lock_update = true;
+            threads.~ThreadPool();
         }
 
         frame_count--;
@@ -471,10 +504,12 @@ void Tmpl8::Game::measure_performance()
 // -----------------------------------------------------------
 void Game::tick(float deltaTime)
 {
+    
     if (!lock_update)
     {
         update(deltaTime);
     }
+    
     draw();
 
     measure_performance();
