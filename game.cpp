@@ -94,16 +94,12 @@ void Game::init()
     {
         vec2 position{ start_blue_x + ((i % max_rows) * spacing), start_blue_y + ((i / max_rows) * spacing) };
         tanks.push_back(Tank(position.x, position.y, BLUE, &tank_blue, &smoke, 1100.f, position.y + 16, tank_radius, tank_max_health, tank_max_speed));
-        //grid.add(&tanks.at(i));
-//        blue_tanks.push_back(&tanks.at(tanks.capacity() - 1));
     }
     //Spawn red tanks
     for (int i = 0; i < num_tanks_red; i++)
     {
         vec2 position{ start_red_x + ((i % max_rows) * spacing), start_red_y + ((i / max_rows) * spacing) };
         tanks.push_back(Tank(position.x, position.y, RED, &tank_red, &smoke, 100.f, position.y + 16, tank_radius, tank_max_health, tank_max_speed));
-        //grid.add(&tanks.at(i + num_tanks_blue ));
- //       red_tanks.push_back(&tanks.at(tanks.capacity() - 1));
     }
     
     tank_futures.push_back(threads.enqueue([this] { addToGrid(); }));
@@ -120,9 +116,6 @@ void Game::init()
     particle_beams.push_back(Particle_beam(vec2(590, 327), vec2(100, 50), &particle_beam_sprite, particle_beam_hit_value));
     particle_beams.push_back(Particle_beam(vec2(64, 64), vec2(100, 50), &particle_beam_sprite, particle_beam_hit_value));
     particle_beams.push_back(Particle_beam(vec2(1200, 600), vec2(100, 50), &particle_beam_sprite, particle_beam_hit_value));
-
-    
-
 }
 
 void Game::addToGrid() {
@@ -481,10 +474,10 @@ void Tmpl8::Game::draw_health_bars(const vector<const Tank*>& sorted_tanks, cons
         int health_bar_start_y = i * 1;
         int health_bar_end_y = health_bar_start_y + 1;
 
-        float health_fraction = (1 - (sorted_tanks.at(i)->health /tank_max_health));
+        float health_fraction = (1 - ((double)sorted_tanks.at(i)->health / (double)tank_max_health));
 
-        if (team == 0) { screen->bar(health_bar_start_x + (health_bar_width * health_fraction), health_bar_start_y, health_bar_end_x, health_bar_end_y, GREENMASK); }
-        else { screen->bar(health_bar_start_x, health_bar_start_y, health_bar_end_x - (health_bar_width * health_fraction), health_bar_end_y, GREENMASK); }
+        if (team == 0) { screen->bar(health_bar_start_x + (int)((double)health_bar_width * health_fraction), health_bar_start_y, health_bar_end_x, health_bar_end_y, GREENMASK); }
+        else { screen->bar(health_bar_start_x, health_bar_start_y, health_bar_end_x - (int)((double)health_bar_width * health_fraction), health_bar_end_y, GREENMASK); }
     }
 }
 

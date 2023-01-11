@@ -23,7 +23,6 @@ class Game
     void convexThread();
     void addToGrid();
     void addToActive();
-    void drawHealthBars();
     void Update_tanks(int thread);
     void Update_rockets(int thread);
     vector<Explosion*> getExplosions();
