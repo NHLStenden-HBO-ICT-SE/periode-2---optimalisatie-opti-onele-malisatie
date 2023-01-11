@@ -2,11 +2,13 @@
 #include "tank.h"
 #include "tankgrid.h"
 #include <vector>
+#include <mutex>
 
 
 
 namespace Tmpl8
 {
+    std::mutex mtx;
     Tank::Tank(
         float pos_x,
         float pos_y,
@@ -62,7 +64,11 @@ void Tank::tick(Terrain& terrain, TankGrid& grid_)
     position += speed * max_speed * 0.5f;
 
     //this = the tank
+
+    mtx.lock();
     grid_.move(this, oldposition);
+    mtx.unlock();
+
 
     //Update reload time
     if (--reload_time <= 0.0f)

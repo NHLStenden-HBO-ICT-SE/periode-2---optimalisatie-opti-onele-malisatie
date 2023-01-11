@@ -52,7 +52,10 @@ const static vec2 rocket_size(6, 6);
 const static float tank_radius = 3.f;
 const static float rocket_radius = 5.f;
 
-ThreadPool threads(thread::hardware_concurrency());
+int threads_Amount = thread::hardware_concurrency();
+
+ThreadPool threads(threads_Amount);
+vector<future<void>> tank_futures;
 
 
 //Create tankgrid and point to it for tank creation
@@ -81,14 +84,6 @@ void Game::init()
 	static float start_red_y = tank_size.y + 30.0f;
 
 	static float spacing = 7.5f;
-    
-    
-    //Spawn blue tanks
-    //thread t1(&Game::CreateBlueTanks, this);
-    //thread t2(&Game::CreateRedTanks, this);
-
-    //t1.join();
-    //t2.join();
 
     const auto processor_count = thread::hardware_concurrency();
 
@@ -110,25 +105,17 @@ void Game::init()
         //grid.add(&tanks.at(i + num_tanks_blue ));
  //       red_tanks.push_back(&tanks.at(tanks.capacity() - 1));
     }
-    /*
-    for (int i = 0; i < tanks.size(); i++)
-    {
-        grid.add(&tanks.at(i));
-    }
     
-    for (int i = 0; i < num_tanks_blue + num_tanks_red; i++)
-    {
-        active_tanks.push_back(&tanks.at(i));
-    }
-    */
+    tank_futures.push_back(threads.enqueue([this] { addToGrid(); }));
+    tank_futures.push_back(threads.enqueue([this] { addToActive(); }));
+   
 
-    thread t1(&Game::addToGrid, this);
-    thread t2(&Game::addToActive, this);
-    //threads.enqueue([this] { addToGrid(); });
-    //threads.enqueue([this] { addToActive(); });
+	for (int i = 0; i < tank_futures.size(); i++)
+	{
+		tank_futures.at(i).wait();
+	}
+	tank_futures.clear();
 
-    t1.join();
-    t2.join();
 
     particle_beams.push_back(Particle_beam(vec2(590, 327), vec2(100, 50), &particle_beam_sprite, particle_beam_hit_value));
     particle_beams.push_back(Particle_beam(vec2(64, 64), vec2(100, 50), &particle_beam_sprite, particle_beam_hit_value));
@@ -214,24 +201,20 @@ void Game::update(float deltaTime)
     {   
         grid.CheckCollision(tank);
     }
+
     
     //Update tanks
-    for (Tank* tank : active_tanks)
-    {
-            //Move tanks according to speed and nudges (see above) also reload
-            tank->tick(background_terrain, gridpoint);
-
-            //Shoot at closest target if reloaded
-            if (tank->rocket_reloaded())
-            {
-                Tank& target = find_closest_enemy(*tank);
-
-                rockets.push_back(Rocket(tank->position, (target.get_position() - tank->position).normalized() * 3, rocket_radius, tank->allignment, ((tank->allignment == RED) ? &rocket_red : &rocket_blue)));
-
-                tank->reload_rocket();
-            }
+    for(int i = 0;i < threads_Amount -1; i++ ){
+        tank_futures.push_back(threads.enqueue([this, i] { Update_tanks(i); }));
     }
+    for (int i = 0; i < tank_futures.size(); i++)
+    {
+        tank_futures.at(i).wait();
+    }
+    tank_futures.clear();
 
+   
+    
     //Update smoke plumes
     for (Smoke& smoke : smokes)
     {
@@ -243,35 +226,19 @@ void Game::update(float deltaTime)
 
     //Calculate convex hull for 'rocket barrier'
     //thread t1(&Game::convexThread, this);
-    threads.enqueue([this] { convexThread(); });
-
+    tank_futures.push_back(threads.enqueue([this] { convexThread(); }));
+	
     //Update rockets
-    for (Rocket& rocket : rockets)
-    {
-        rocket.tick();
+   
+	for (int i = 0; i < threads_Amount -2; i++) {
+		tank_futures.push_back(threads.enqueue([this, i] { Update_rockets(i); }));
+	}
 
-        //Check if rocket collides with enemy tank, spawn explosion, and if tank is destroyed spawn a smoke plume
-        vector<Tank*> tankchecklist = grid.RocketCheckCollision(rocket.position);
-
-        for (Tank* tank : tankchecklist)
-        {
-
-        if ((tank->allignment != rocket.allignment) && rocket.intersects(tank->position, tank->collision_radius))
-            {
-                            
-             explosions.push_back(Explosion(&explosion, tank->position));
-
-             if (tank->hit(rocket_hit_value))
-             {
-                smokes.push_back(Smoke(smoke, tank->position - vec2(7, 24)));
-             }
-
-               rocket.active = false;
-            }
-        }
-
-    }
-    //t1.join();
+	for (int i = 0; i < tank_futures.size(); i++)
+	{
+		tank_futures.at(i).wait();
+	}
+	tank_futures.clear();
     //Disable rockets if they collide with the "forcefield"
     //Hint: A point to convex hull intersection test might be better here? :) (Disable if outside)
     for (Rocket& rocket : rockets)
@@ -288,8 +255,6 @@ void Game::update(float deltaTime)
             }
         }
     }
-
-
 
     //Remove exploded rockets with remove erase idiom
     rockets.erase(std::remove_if(rockets.begin(), rockets.end(), [](const Rocket& rocket) { return !rocket.active; }), rockets.end());
@@ -329,6 +294,69 @@ void Game::update(float deltaTime)
 
 }
 
+void Game::Update_tanks(int thread){
+    int section = active_tanks.size(); -1 / threads_Amount - 1;
+    int begin = thread * section;
+    int end = begin + section;
+    if (thread == threads_Amount - 1){
+        end = active_tanks.size() - 1;
+    }
+
+    for (int i = begin; i <= end; i++)
+    {
+        Tank* tank = active_tanks.at(i);
+		//Move tanks according to speed and nudges (see above) also reload
+		tank->tick(background_terrain, gridpoint);
+
+		//Shoot at closest target if reloaded
+		if (tank->rocket_reloaded())
+		{
+			Tank& target = find_closest_enemy(*tank);
+
+			rockets.push_back(Rocket(tank->position, (target.get_position() - tank->position).normalized() * 3, rocket_radius, tank->allignment, ((tank->allignment == RED) ? &rocket_red : &rocket_blue)));
+
+			tank->reload_rocket();
+		}
+	}
+} 
+
+void Game::Update_rockets(int thread) {
+    //main thread is in use and convex is using a thread, so threads_amount - 2.
+    int section = rockets.size(); -1 / threads_Amount - 2;
+    int begin = thread * section;
+    int end = begin + section;
+	if (thread == threads_Amount - 2) {
+		end = rockets.size() - 1;
+	}
+
+    for (int i = begin; i <= end; i++)
+    {
+        Rocket* rocket = &rockets.at(i);
+		rocket->tick();
+
+		//Check if rocket collides with enemy tank, spawn explosion, and if tank is destroyed spawn a smoke plume
+		vector<Tank*> tankchecklist = grid.RocketCheckCollision(rocket->position);
+
+		for (Tank* tank : tankchecklist)
+		{
+
+			if ((tank->allignment != rocket->allignment) && rocket->intersects(tank->position, tank->collision_radius))
+			{
+
+				explosions.push_back(Explosion(&explosion, tank->position));
+
+				if (tank->hit(rocket_hit_value))
+				{
+					smokes.push_back(Smoke(smoke, tank->position - vec2(7, 24)));
+				}
+
+				rocket->active = false;
+			}
+		}
+
+	}
+}
+
 // -----------------------------------------------------------
 // Draw all sprites to the screen
 // (It is not recommended to multi-thread this function)
@@ -340,9 +368,6 @@ void Game::draw()
 
     //Draw background
     background_terrain.draw(screen);
-
-    thread t1(&Game::drawHealthBars, this);
-   
 
     //Draw sprites
     for (int i = 0; i < num_tanks_blue + num_tanks_red; i++)
@@ -381,26 +406,22 @@ void Game::draw()
         line_end.x += HEALTHBAR_OFFSET;
         screen->line(line_start, line_end, 0x0000ff);
     }   
-     //threads.enqueue([this] { drawHealthBars(); });
-    t1.join();
+
+	//Draw sorted health bars
+	for (int t = 0; t < 2; t++)
+	{
+
+		const int NUM_TANKS = ((t < 1) ? num_tanks_blue : num_tanks_red);
+
+		const int begin = ((t < 1) ? 0 : num_tanks_blue);
+
+		vector<const Tank*> sorted_tanks;
+		insertion_sort_tanks_health(tanks, sorted_tanks, begin, begin + NUM_TANKS);
+		sorted_tanks.erase(std::remove_if(sorted_tanks.begin(), sorted_tanks.end(), [](const Tank* tank) { return !tank->active; }), sorted_tanks.end());
+
+		draw_health_bars(sorted_tanks, t);
+	}
    
-}
-
-void Game::drawHealthBars(){
-    //Draw sorted health bars
-    for (int t = 0; t < 2; t++)
-    {
-
-        const int NUM_TANKS = ((t < 1) ? num_tanks_blue : num_tanks_red);
-
-        const int begin = ((t < 1) ? 0 : num_tanks_blue);
-
-        vector<const Tank*> sorted_tanks;
-        insertion_sort_tanks_health(tanks, sorted_tanks, begin, begin + NUM_TANKS);
-        sorted_tanks.erase(std::remove_if(sorted_tanks.begin(), sorted_tanks.end(), [](const Tank* tank) { return !tank->active; }), sorted_tanks.end());
-
-        draw_health_bars(sorted_tanks, t);
-    }
 }
 
 // -----------------------------------------------------------

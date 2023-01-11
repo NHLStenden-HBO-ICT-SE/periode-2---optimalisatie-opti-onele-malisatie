@@ -55,7 +55,7 @@ class ThreadPool
 
         //Wake up a thread to start this task
         condition.notify_one();
-
+        
         return wrapper->get_future();
     }
 
@@ -95,5 +95,6 @@ inline void Worker::operator()()
         task();
     }
 }
+
 
 } // namespace Tmpl8
