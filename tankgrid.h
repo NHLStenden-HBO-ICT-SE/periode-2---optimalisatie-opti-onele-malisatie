@@ -8,9 +8,9 @@ namespace Tmpl8
 		TankGrid();
 		void add(Tank* tank);
 		void move(Tank* tank, vec2 oldposition);
-		void CheckCollision(Tank* tank);
-		void Collision(Tank* tank, Tank* other_tank);
-		vector<Tank*> RocketCheckCollision(vec2 position);
+		void checkcollision(Tank* tank);
+		void collision(Tank* tank, Tank* other_tank);
+		vector<Tank*> rocket_checkcollision(vec2 position);
 
 		//1420/720
         static const int CELL_SIZE = 12;

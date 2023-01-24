@@ -20,13 +20,11 @@ class Game
     void insertion_sort_tanks_health(const vector<Tank>& original, vector<const Tank*>& sorted_tanks, int begin, int end);
     void draw_health_bars(const vector<const Tank*>& sorted_tanks, const int team);
     void measure_performance();
-    void convexThread();
-    void addToGrid();
-    void addToActive();
-    void Update_tanks(int thread);
-    void Update_rockets(int thread);
-    vector<Explosion*> getExplosions();
-    vector<Smoke*> getSmokes();
+    void create_convex();
+    void addtogrid();
+    void addtoactive();
+    void update_tanks(int thread);
+    void update_rockets(int thread);
     
     //vector<Tank> sort(vector<Tank> sortlist);
 

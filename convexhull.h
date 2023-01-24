@@ -11,20 +11,20 @@ namespace Tmpl8
 	public:
 		Convexhull();
 
-		void SetTankList(vector<Tank*> ActiveTanks);
+		void set_tanklist(vector<Tank*> ActiveTanks);
 
-		vector<vec2> ConvexHullcreate();
+		vector<vec2> convexhullcreate();
 
 	private:
 		
-		vector<Tank*> BottomTankSort(vector<Tank*> tanks);
-		vector<Tank*> BottomTankMerge(vector<Tank*> l_tanks, vector<Tank*> r_tanks);
-		vector<Tank*> AngleTankSort(vector<Tank*> tanks);
-		vector<Tank*> AngleTankMerge(vector<Tank*> l_tanks, vector<Tank*> r_tanks);
-		int Rotation(vec2 LastHull, vec2 pos2, vec2 pos3);
-		double distSqr(vec2 pos1, vec2 pos2);
+		vector<Tank*> bottom_tanksort(vector<Tank*> tanks);
+		vector<Tank*> bottom_tankmerge(vector<Tank*> l_tanks, vector<Tank*> r_tanks);
+		vector<Tank*> angle_tanksort(vector<Tank*> tanks);
+		vector<Tank*> angle_tankmerge(vector<Tank*> l_tanks, vector<Tank*> r_tanks);
+		int rotation(vec2 LastHull, vec2 pos2, vec2 pos3);
+		double distsqr(vec2 pos1, vec2 pos2);
 		
-		double AngleCalculator(vec2 position);
+		double anglecalculator(vec2 position);
 
 		vector<Tank*> BottomMergedTanks;
 		

@@ -52,7 +52,7 @@ const static vec2 rocket_size(6, 6);
 const static float tank_radius = 3.f;
 const static float rocket_radius = 5.f;
 
-int threads_Amount = thread::hardware_concurrency();
+int threads_Amount = thread::hardware_concurrency() - 1;
 
 ThreadPool threads(threads_Amount);
 vector<future<void>> tank_futures;
@@ -85,11 +85,6 @@ void Game::init()
 
 	static float spacing = 7.5f;
 
-    const auto processor_count = thread::hardware_concurrency();
-
-
-    cout << processor_count;
-
     for (int i = 0; i < num_tanks_blue; i++)
     {
         vec2 position{ start_blue_x + ((i % max_rows) * spacing), start_blue_y + ((i / max_rows) * spacing) };
@@ -102,29 +97,27 @@ void Game::init()
         tanks.push_back(Tank(position.x, position.y, RED, &tank_red, &smoke, 100.f, position.y + 16, tank_radius, tank_max_health, tank_max_speed));
     }
     
-    tank_futures.push_back(threads.enqueue([this] { addToGrid(); }));
-    tank_futures.push_back(threads.enqueue([this] { addToActive(); }));
+    tank_futures.push_back(threads.enqueue([this] { addtogrid(); }));
+    tank_futures.push_back(threads.enqueue([this] { addtoactive(); }));
    
-
 	for (int i = 0; i < tank_futures.size(); i++)
 	{
 		tank_futures.at(i).wait();
 	}
 	tank_futures.clear();
 
-
     particle_beams.push_back(Particle_beam(vec2(590, 327), vec2(100, 50), &particle_beam_sprite, particle_beam_hit_value));
     particle_beams.push_back(Particle_beam(vec2(64, 64), vec2(100, 50), &particle_beam_sprite, particle_beam_hit_value));
     particle_beams.push_back(Particle_beam(vec2(1200, 600), vec2(100, 50), &particle_beam_sprite, particle_beam_hit_value));
 }
 
-void Game::addToGrid() {
+void Game::addtogrid() {
     for (int i = 0; i < tanks.size(); i++)
     {
         grid.add(&tanks.at(i));
     }
 }
-void Game::addToActive() {
+void Game::addtoactive() {
     for (int i = 0; i < num_tanks_blue + num_tanks_red; i++)
     {
         active_tanks.push_back(&tanks.at(i));
@@ -192,13 +185,13 @@ void Game::update(float deltaTime)
     //Check tank collision and nudge tanks away from each other
     for (Tank* tank : active_tanks)
     {   
-        grid.CheckCollision(tank);
+        grid.checkcollision(tank);
     }
 
     
     //Update tanks
-    for(int i = 0;i < threads_Amount -1; i++ ){
-        tank_futures.push_back(threads.enqueue([this, i] { Update_tanks(i); }));
+    for(int i = 0;i < threads_Amount; i++ ){
+        tank_futures.push_back(threads.enqueue([this, i] { update_tanks(i); }));
     }
     for (int i = 0; i < tank_futures.size(); i++)
     {
@@ -219,12 +212,12 @@ void Game::update(float deltaTime)
 
     //Calculate convex hull for 'rocket barrier'
     //thread t1(&Game::convexThread, this);
-    tank_futures.push_back(threads.enqueue([this] { convexThread(); }));
+    tank_futures.push_back(threads.enqueue([this] { create_convex(); }));
 	
     //Update rockets
    
-	for (int i = 0; i < threads_Amount -2; i++) {
-		tank_futures.push_back(threads.enqueue([this, i] { Update_rockets(i); }));
+	for (int i = 0; i < threads_Amount - 1; i++) {
+		tank_futures.push_back(threads.enqueue([this, i] { update_rockets(i); }));
 	}
 
 	for (int i = 0; i < tank_futures.size(); i++)
@@ -284,14 +277,19 @@ void Game::update(float deltaTime)
             active_tanks.erase(active_tanks.begin() + i);
         }
     }
-
 }
 
-void Game::Update_tanks(int thread){
-    int section = active_tanks.size(); -1 / threads_Amount - 1;
+void Game::create_convex() {
+    Convexhull convex;
+    convex.set_tanklist(active_tanks);
+    forcefield_hull = convex.convexhullcreate();
+}
+
+void Game::update_tanks(int thread){
+    int section = active_tanks.size(); -1 / threads_Amount;
     int begin = thread * section;
     int end = begin + section;
-    if (thread == threads_Amount - 1){
+    if (thread == threads_Amount){
         end = active_tanks.size() - 1;
     }
 
@@ -313,12 +311,12 @@ void Game::Update_tanks(int thread){
 	}
 } 
 
-void Game::Update_rockets(int thread) {
-    //main thread is in use and convex is using a thread, so threads_amount - 2.
-    int section = rockets.size(); -1 / threads_Amount - 2;
+void Game::update_rockets(int thread) {
+    //main thread is in use and convex is using a thread, so threads_amount - 1.
+    int section = rockets.size(); -1 / threads_Amount - 1;
     int begin = thread * section;
     int end = begin + section;
-	if (thread == threads_Amount - 2) {
+	if (thread == threads_Amount - 1) {
 		end = rockets.size() - 1;
 	}
 
@@ -328,7 +326,7 @@ void Game::Update_rockets(int thread) {
 		rocket->tick();
 
 		//Check if rocket collides with enemy tank, spawn explosion, and if tank is destroyed spawn a smoke plume
-		vector<Tank*> tankchecklist = grid.RocketCheckCollision(rocket->position);
+		vector<Tank*> tankchecklist = grid.rocket_checkcollision(rocket->position);
 
 		for (Tank* tank : tankchecklist)
 		{
@@ -540,8 +538,4 @@ void Game::tick(float deltaTime)
     frame_count_font->print(screen, frame_count_string.c_str(), 350, 580);
 }
 
-void Game::convexThread() {
-    Convexhull convex;
-    convex.SetTankList(active_tanks);
-    forcefield_hull = convex.ConvexHullcreate();
-}
+

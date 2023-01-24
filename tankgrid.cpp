@@ -16,11 +16,10 @@ namespace Tmpl8 {
                 cells_[x][y] = nullptr;
             }
         }
-    };
+    }
 
     void TankGrid::add(Tank* tank)
     {
-
         // Determine which grid cell it's in.
         int cellX = (int)(tank->position.x / TankGrid::CELL_SIZE);
         int cellY = (int)(tank->position.y / TankGrid::CELL_SIZE);
@@ -32,7 +31,7 @@ namespace Tmpl8 {
         {
             tank->next_->prev_ = tank;
         }
-    };
+    }
 
     void TankGrid::move(Tank* tank, vec2 oldposition)
     {
@@ -62,7 +61,7 @@ namespace Tmpl8 {
         add(tank);
     }
 
-    void TankGrid::CheckCollision(Tank* tank) {
+    void TankGrid::checkcollision(Tank* tank) {
         int cellX = (int)(tank->position.x / TankGrid::CELL_SIZE);
         int cellY = (int)(tank->position.y / TankGrid::CELL_SIZE);
 
@@ -74,18 +73,18 @@ namespace Tmpl8 {
             {
                 if (cells_[cellX - 1 + i][cellY - 1 + j] != cells_[cellX][cellY])
                 {
-                    Collision(tank, cells_[cellX - 1 + i][cellY - 1 + j]);
+                    collision(tank, cells_[cellX - 1 + i][cellY - 1 + j]);
                 }
                 else {
-                    Collision(tank, tank->next_);
+                    collision(tank, tank->next_);
                 }
             }
         }
     }
 
 
-    void TankGrid::Collision(Tank* tank, Tank* tank2) {
-
+    void TankGrid::collision(Tank* tank, Tank* tank2) {
+    //check collision of tanks
         Tank* other_tank = tank2;
 
         while (other_tank != nullptr) {
@@ -105,30 +104,27 @@ namespace Tmpl8 {
             }
             other_tank = other_tank->next_;
         }
-        
     }
 
-            vector<Tank*> TankGrid::RocketCheckCollision(vec2 position) {
-                int cellRocketX = (int)(position.x / TankGrid::CELL_SIZE);
-                int cellRocketY = (int)(position.y / TankGrid::CELL_SIZE);
-                vector<Tank*> TanksInArea;
-                // Handle other units in this cell.
-            //Scans through the cells around the tank in a 3 by 3 grid.
-                for (int i = 0; i < 3; i++)
-                {
-                    for (int j = 0; j < 3; j++)
-                    {
-                        
-                        Tank* tank = cells_[cellRocketX - 1 + i][cellRocketY - 1 + j];
-                            while(tank != nullptr){
-                                if (tank->active) {
-                                    TanksInArea.push_back(tank);
-                                }
-                            tank = tank->next_;
-                            }
+    vector<Tank*> TankGrid::rocket_checkcollision(vec2 position) {
+        int cellRocketX = (int)(position.x / TankGrid::CELL_SIZE);
+        int cellRocketY = (int)(position.y / TankGrid::CELL_SIZE);
+        vector<Tank*> TanksInArea;
+        // Handle other units in this cell.
+        //Scans through the cells around the tank in a 3 by 3 grid.
+        for (int i = 0; i < 3; i++){
+            for (int j = 0; j < 3; j++){
+
+                Tank* tank = cells_[cellRocketX - 1 + i][cellRocketY - 1 + j];
+                while(tank != nullptr){
+                    if (tank->active) {
+                     TanksInArea.push_back(tank);
                     }
+                tank = tank->next_;
                 }
-                return TanksInArea;
             }
+        }
+        return TanksInArea;
+    }
             
 }
